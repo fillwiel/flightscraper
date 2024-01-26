@@ -1,10 +1,18 @@
 package pl.wielkopolan.flightscraper.services;
 
 import org.json.JSONArray;
-import pl.wielkopolan.flightscraper.data.PromotionDto;
+import org.json.JSONObject;
+import pl.wielkopolan.flightscraper.data.Flight;
+import pl.wielkopolan.flightscraper.data.rainbow.PromotionDto;
+import pl.wielkopolan.flightscraper.data.rainbow.TicketDto;
 
+import java.util.Date;
 import java.util.List;
 
 public interface JsonConverterService {
-    List<PromotionDto> convertJsonToPromotionDto(JSONArray jsonArray);
+    List<PromotionDto> createPromotionDto(JSONArray jsonArray);
+
+    Flight createFlightFromJson(JSONObject infoAboutFlightConnection, String packageId, TicketDto ticketDto, Date date);
+
+    Flight appendFlightPriceHistory(Flight existingFlight, JSONObject infoAboutFlightConnection);
 }

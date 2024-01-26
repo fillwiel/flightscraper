@@ -1,4 +1,9 @@
 package pl.wielkopolan.flightscraper.data;
 
-public record PriceHistory() {
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.Date;
+
+@Document
+public record PriceHistory(int returnFightId, int price, Date dateOfChange) {
 }

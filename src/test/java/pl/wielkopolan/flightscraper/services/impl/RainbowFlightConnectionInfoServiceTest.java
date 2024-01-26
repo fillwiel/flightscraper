@@ -7,6 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
+import java.io.IOException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -22,7 +24,7 @@ class RainbowFlightConnectionInfoServiceTest {
      * since they are tested over life environment and quickly become outdated.
      */
 
-    void shouldReturnJsonForWorkingIds(){
+    void shouldReturnJsonForWorkingIds() throws IOException {
         //given
         int idOutboundFlight = ID_OUTBOUND_FLIGHT;
         int idReturnFlight = ID_RETURN_FLIGHT;

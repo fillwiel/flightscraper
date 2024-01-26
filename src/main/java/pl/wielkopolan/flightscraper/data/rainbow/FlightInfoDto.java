@@ -1,4 +1,4 @@
 package pl.wielkopolan.flightscraper.data.rainbow;
 
-public record FlightDto(String airport, String city, String country) {
+public record FlightInfoDto(String airport, String city, String country) {
 }

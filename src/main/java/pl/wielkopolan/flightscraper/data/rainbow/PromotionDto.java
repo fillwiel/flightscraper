@@ -1,4 +1,4 @@
-package pl.wielkopolan.flightscraper.data;
+package pl.wielkopolan.flightscraper.data.rainbow;
 
 import java.util.Date;
 import java.util.List;

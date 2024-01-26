@@ -14,14 +14,14 @@ import java.util.Date;
  * Initiates flight scrape every day
  */
 @Component
-public class ScheduledDailyFlightScrape {
+public class ScheduledFlightScrape {
 
-  private static final Logger log = LoggerFactory.getLogger(ScheduledDailyFlightScrape.class);
+  private static final Logger log = LoggerFactory.getLogger(ScheduledFlightScrape.class);
 
   @Autowired
   private ScrapeService scrapeService;
 
-  @Scheduled(cron = "0/20 0 0 ? * * *")
+  @Scheduled(cron = "0 * * ? * *")
   public void scrapeFlightsFromHomepage() throws IOException {
     log.info("Running full scrape at:{}", new Date());
     scrapeService.scrapePackages();

@@ -3,10 +3,12 @@ package pl.wielkopolan.flightscraper.services.impl;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
-import pl.wielkopolan.flightscraper.data.FlightDto;
-import pl.wielkopolan.flightscraper.data.PromotionDto;
-import pl.wielkopolan.flightscraper.data.PromotionDtoOld;
-import pl.wielkopolan.flightscraper.data.TicketDto;
+import pl.wielkopolan.flightscraper.data.Flight;
+import pl.wielkopolan.flightscraper.data.PriceHistory;
+import pl.wielkopolan.flightscraper.data.rainbow.FlightInfoDto;
+import pl.wielkopolan.flightscraper.data.rainbow.PromotionDto;
+import pl.wielkopolan.flightscraper.data.rainbow.TicketDto;
+import pl.wielkopolan.flightscraper.services.JsonConverterService;
 import pl.wielkopolan.flightscraper.util.jsonconstants.RainbowConstants;
 
 import java.time.LocalDate;
@@ -14,52 +16,99 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
-public class JsonConverterService {
-    public void convertJsonToPromotionDto(JSONArray jsonArray) {
-        List<PromotionDtoOld> promotionDtoOldList = new ArrayList<>();
-        jsonArray.iterator().forEachRemaining(element -> {
-            JSONObject jsonObject = (JSONObject) element;
-            String key = jsonObject.get(RainbowConstants.KLUCZ.getValue()).toString();
-            String destinationCity = jsonObject.get(RainbowConstants.NAZWA.getValue()).toString();
-            String country = jsonObject.get(RainbowConstants.PANSTWO.getValue()).toString();
-            int price = (int) jsonObject.get(RainbowConstants.CENA.getValue());
-            promotionDtoOldList.add(new PromotionDtoOld(key, destinationCity, country, price, ""));
-        });
-
-
+public class RainbowJsonConverterService implements JsonConverterService {
+    @Override
+    public List<PromotionDto> createPromotionDto(JSONArray jsonArray) {
+        List<PromotionDto> promotionDtoList = new ArrayList<>();
+        jsonArray.iterator().forEachRemaining(element -> promotionDtoList.add(createPromotionDto((JSONObject) element)));
+        return promotionDtoList;
     }
 
-    PromotionDto createPromotionDto(JSONObject jsonObject) {
+    @Override
+    public Flight createFlightFromJson(JSONObject infoAboutFlightConnection, String packageId, TicketDto ticketDto,
+                                       Date date) {
+        return createFlight(infoAboutFlightConnection, packageId, ticketDto, date);
+    }
+
+    @Override
+    public Flight appendFlightPriceHistory(Flight existingFlight, JSONObject infoAboutFlightConnection) {
+        return updateFlight(existingFlight, infoAboutFlightConnection);
+    }
+
+    private Flight updateFlight(Flight flight, JSONObject infoAboutFlightConnection) {
+        PriceHistory currentPrice = createPriceHistoryItem(infoAboutFlightConnection);
+        if (isPriceChanged(flight, currentPrice)) {
+            flight.priceHistory().addLast(currentPrice);
+        }
+        return flight;
+    }
+
+    private static boolean isPriceChanged(Flight flight, PriceHistory currentPrice) {
+        Optional<PriceHistory> unchangedPrice = flight.priceHistory().stream()
+                .filter(priceHistory -> priceHistory.price() == currentPrice.price())
+                .findFirst();
+        return unchangedPrice.isEmpty();
+    }
+
+    private Flight createFlight(JSONObject infoAboutFlightConnection, String packageId, TicketDto ticketDto,
+                                Date date) {
+        String airport = ticketDto.arrivalInfo().airport();
+        String country = ticketDto.arrivalInfo().country();
+        String arrivalCity = ticketDto.arrivalInfo().city();
+        String departureCity = ticketDto.departureInfo().city();
+        PriceHistory priceHistoryItem = createPriceHistoryItem(infoAboutFlightConnection);
+        return new Flight(packageId, airport, country, arrivalCity, departureCity, date, List.of(priceHistoryItem));
+    }
+
+    private PriceHistory createPriceHistoryItem(JSONObject infoAboutFlightConnection) {
+        int price = (int) infoAboutFlightConnection.get(RainbowConstants.PRICE.getValue());
+        int returnFlightId = (int) infoAboutFlightConnection.get(RainbowConstants.ID.getValue());
+        return new PriceHistory(returnFlightId, price, new Date());
+    }
+
+    private PromotionDto createPromotionDto(JSONObject jsonObject) {
         int price = (int) jsonObject.get(RainbowConstants.CENA.getValue());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate localDate = LocalDate.parse(dateString, formatter);
-
-        // Convert LocalDate to Date (if needed)
+        LocalDate localDate = LocalDate.parse(jsonObject.get(RainbowConstants.DATA.getValue()).toString(), formatter);
         Date date = java.sql.Date.valueOf(localDate);
-        JSONArray tickets = (JSONArray) jsonObject.get(RainbowConstants.BILETY.getValue());
-        TicketDto[] ticketDtos = new TicketDto[tickets.length()];
-        tickets.iterator().forEachRemaining(element -> {
-            JSONObject ticket = (JSONObject) element;
-            ticketDtos[tickets.length()] = createTicket(ticket);
+        JSONArray jsonTickets = (JSONArray) jsonObject.get(RainbowConstants.BILETY.getValue());
+        List<TicketDto> tickets = new ArrayList<>();
+        jsonTickets.iterator().forEachRemaining(element -> {
+            JSONObject jsonTicket = (JSONObject) element;
+            tickets.add(createTicket(jsonTicket));
+
         });
-        return new PromotionDto(price, ticketDtos);
+        return new PromotionDto(date, price, tickets);
     }
 
-    TicketDto createTicket(JSONObject jsonObject){
-        int id = (int) jsonObject.get(RainbowConstants.ID.getValue());
+    private TicketDto createTicket(JSONObject jsonObject) {
+        int id = Integer.parseInt(jsonObject.get(RainbowConstants.ID_CAMELCASE.getValue()).toString());
         int price = (int) jsonObject.get(RainbowConstants.CENA.getValue());
-        FlightDto inboundFlight = createFlight((JSONObject) jsonObject.get(RainbowConstants.PRZYLOT.getValue()));
-        FlightDto outboundFlight = createFlight((JSONObject) jsonObject.get(RainbowConstants.WYLOT.getValue()));
-        String[] packages = jsonObject.get(RainbowConstants.PAKIETY.getValue()).toString().split(",");
+        FlightInfoDto inboundFlight =
+                createFlightInfo((JSONObject) jsonObject.get(RainbowConstants.PRZYLOT.getValue()));
+        FlightInfoDto outboundFlight = createFlightInfo((JSONObject) jsonObject.get(RainbowConstants.WYLOT.getValue()));
+        String packageIdArray = jsonObject.get(RainbowConstants.PAKIETY.getValue()).toString();
+        List<String> packages = createPackageIdList(packageIdArray);
         return new TicketDto(id, outboundFlight, inboundFlight, price, packages);
     }
-    FlightDto createFlight(JSONObject jsonObject) {
+
+    private List<String> createPackageIdList(String packageIdArray) {
+        String packageIds = "";
+        if (packageIdArray.length() >= 2) {
+            // Remove the first and last characters, remove quotation marks
+            packageIds = packageIdArray.substring(1, packageIdArray.length() - 1).replace("\"", "");
+        }
+        return List.of(packageIds.split(","));
+    }
+
+    private FlightInfoDto createFlightInfo(JSONObject jsonObject) {
         String airport = jsonObject.get(RainbowConstants.IATA.getValue()).toString();
         String city = jsonObject.get(RainbowConstants.PRZYSTANEK.getValue()).toString();
         String country = jsonObject.get(RainbowConstants.PANSTWO.getValue()).toString();
-        return new FlightDto(airport, city, country);
+        return new FlightInfoDto(airport, city, country);
     }
 
 

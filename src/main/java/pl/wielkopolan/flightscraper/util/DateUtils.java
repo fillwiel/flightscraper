@@ -3,16 +3,7 @@ package pl.wielkopolan.flightscraper.util;
 import java.util.Calendar;
 import java.util.Date;
 
-public class DateUtils {
-
-    public static void main(String[] args) {
-        Date firstDayOfMonth = getFirstDayOfMonth();
-        Date lastDayOfMonth = getLastDayOfMonth();
-
-        System.out.println("First day of current month: " + firstDayOfMonth);
-        System.out.println("Last day of current month: " + lastDayOfMonth);
-    }
-
+public final class DateUtils {
     public static Date getFirstDayOfMonth() {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_MONTH, 1); // Set to the first day of the month
@@ -39,5 +30,9 @@ public class DateUtils {
         calendar.set(Calendar.MINUTE, 59);
         calendar.set(Calendar.SECOND, 59);
         calendar.set(Calendar.MILLISECOND, 999);
+    }
+
+    private DateUtils() {
+        //Util class - private constructor
     }
 }

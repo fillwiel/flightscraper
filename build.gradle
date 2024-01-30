@@ -25,7 +25,6 @@ dependencies {
 	implementation group: 'com.h2database', name: 'h2', version: '2.2.224'
 	implementation group: 'com.google.cloud.tools', name: 'jib-maven-plugin', version: '3.4.0'
 	testImplementation 'junit:junit:4.13.1'
-	testImplementation 'junit:junit:4.13.1'
 	compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
 	compileOnly group: 'org.openjdk.jol', name: 'jol-core', version: '0.17'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'

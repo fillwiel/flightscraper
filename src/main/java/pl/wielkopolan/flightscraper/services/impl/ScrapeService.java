@@ -1,6 +1,8 @@
 package pl.wielkopolan.flightscraper.services.impl;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.wielkopolan.flightscraper.data.Flight;
@@ -17,6 +19,7 @@ import java.util.List;
 
 @Service
 public class ScrapeService {
+    private static final Logger log = LoggerFactory.getLogger(ScrapeService.class);
     @Autowired
     private PromotionListService promotionListService;
     @Autowired
@@ -51,6 +54,7 @@ public class ScrapeService {
                 .map(existingFlight ->
                         jsonConverterService.appendFlightPriceHistory(existingFlight, infoAboutFlightConnection))
                 .orElse(jsonConverterService.createFlightFromJson(infoAboutFlightConnection, packageId, ticketDto, date));
+        log.info("Saving flight to repository: {}", flight);
         flightRepository.save(flight);
     }
 }

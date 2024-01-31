@@ -1,5 +1,6 @@
 package pl.wielkopolan.flightscraper.scheduling;
 
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,7 +8,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pl.wielkopolan.flightscraper.services.impl.ScrapeService;
 
-import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -16,14 +16,21 @@ import java.util.Date;
 @Component
 public class ScheduledFlightScrape {
 
-  private static final Logger log = LoggerFactory.getLogger(ScheduledFlightScrape.class);
+    private static final Logger log = LoggerFactory.getLogger(ScheduledFlightScrape.class);
+    private final ScrapeService scrapeService;
 
-  @Autowired
-  private ScrapeService scrapeService;
+    @Scheduled(cron = "0 0 * * * *")
+    public void scrapeFlightsFromHomepage() {
+        log.info("Running full scrape at: {}", new Date());
+        scrapeService.scrapePackages();
+    }
 
-  @Scheduled(cron = "0 * * ? * *")
-  public void scrapeFlightsFromHomepage() throws IOException {
-    log.info("Running full scrape at:{}", new Date());
-    scrapeService.scrapePackages();
-  }
+    @PostConstruct
+    public void onStartup() {
+        scrapeFlightsFromHomepage();
+    }
+    @Autowired
+    public ScheduledFlightScrape(ScrapeService scrapeService) {
+        this.scrapeService = scrapeService;
+    }
 }

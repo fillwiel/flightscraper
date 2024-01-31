@@ -1,5 +1,7 @@
 package pl.wielkopolan.flightscraper.util;
 
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -12,10 +14,11 @@ public final class DateUtils {
     }
 
     public static Date getLastDayOfMonth() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH)); // Set to the last day of the month
-        setToEndOfDay(calendar); // Set time part to end of the day (23:59:59)
-        return calendar.getTime();
+        // Get the first day of the next month
+        LocalDate firstDayOfNextMonth = LocalDate.now().plusMonths(1).withDayOfMonth(1);
+        // Get the last day of the next month using YearMonth class
+        YearMonth yearMonth = YearMonth.from(firstDayOfNextMonth);
+        return java.sql.Date.valueOf(yearMonth.atEndOfMonth());
     }
 
     private static void resetTimePart(Calendar calendar) {
@@ -24,14 +27,6 @@ public final class DateUtils {
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
     }
-
-    private static void setToEndOfDay(Calendar calendar) {
-        calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 59);
-        calendar.set(Calendar.SECOND, 59);
-        calendar.set(Calendar.MILLISECOND, 999);
-    }
-
     private DateUtils() {
         //Util class - private constructor
     }

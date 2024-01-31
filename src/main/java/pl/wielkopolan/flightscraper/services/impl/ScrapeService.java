@@ -13,48 +13,51 @@ import pl.wielkopolan.flightscraper.services.FlightConnectionInfoService;
 import pl.wielkopolan.flightscraper.services.JsonConverterService;
 import pl.wielkopolan.flightscraper.services.PromotionListService;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
 @Service
 public class ScrapeService {
     private static final Logger log = LoggerFactory.getLogger(ScrapeService.class);
-    @Autowired
-    private PromotionListService promotionListService;
-    @Autowired
-    private JsonConverterService jsonConverterService;
-    @Autowired
-    private FlightConnectionInfoService flightConnectionInfoService;
-    @Autowired
-    private FlightRepository flightRepository;
-    public void scrapePackages() throws IOException {
-        List<PromotionDto> promotionDtos = jsonConverterService.createPromotionDto(promotionListService.getPromotionList());
-        processPromotions(promotionDtos);
+    private final PromotionListService promotionListService;
+    private final JsonConverterService jsonConverterService;
+    private final FlightConnectionInfoService flightConnectionInfoService;
+    private final FlightRepository flightRepository;
+
+    public void scrapePackages() {
+        processPromotions(jsonConverterService.createPromotionDto(promotionListService.getPromotionList()));
     }
-    private void processPromotions(List<PromotionDto> promotionDtos){
+
+    private void processPromotions(List<PromotionDto> promotionDtos) {
         promotionDtos.forEach(this::processSinglePromotion);
     }
-    private void processSinglePromotion(PromotionDto promotionDto){
+
+    private void processSinglePromotion(PromotionDto promotionDto) {
         promotionDto.tickets().forEach(ticket -> processTicket(ticket, promotionDto.date()));
     }
-    private void processTicket(TicketDto ticketDto, Date date){
-        ticketDto.packages().forEach(packageId -> {
-            try {
-                processPackage(packageId, ticketDto, date);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
 
+    private void processTicket(TicketDto ticketDto, Date date) {
+        ticketDto.packages().forEach(packageId -> processPackage(packageId, ticketDto, date));
     }
-    private void processPackage(String packageId, TicketDto ticketDto, Date date) throws IOException {
-        JSONObject infoAboutFlightConnection = flightConnectionInfoService.getInfoAboutFlightConnection(packageId);
+
+    private void processPackage(String packageId, TicketDto ticketDto, Date date) {
+        final JSONObject infoAboutFlightConnection =
+                flightConnectionInfoService.getInfoAboutFlightConnection(packageId);
         Flight flight = flightRepository.findByPackageId(packageId)
                 .map(existingFlight ->
                         jsonConverterService.appendFlightPriceHistory(existingFlight, infoAboutFlightConnection))
-                .orElse(jsonConverterService.createFlightFromJson(infoAboutFlightConnection, packageId, ticketDto, date));
+                .orElse(jsonConverterService.createFlightFromJson(infoAboutFlightConnection, packageId, ticketDto,
+                        date));
         log.info("Saving flight to repository: {}", flight);
         flightRepository.save(flight);
+    }
+
+    @Autowired
+    public ScrapeService(PromotionListService promotionListService, JsonConverterService jsonConverterService,
+                         FlightConnectionInfoService flightConnectionInfoService, FlightRepository flightRepository) {
+        this.promotionListService = promotionListService;
+        this.jsonConverterService = jsonConverterService;
+        this.flightConnectionInfoService = flightConnectionInfoService;
+        this.flightRepository = flightRepository;
     }
 }

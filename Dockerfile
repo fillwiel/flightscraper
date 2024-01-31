@@ -1,6 +1,5 @@
 #Build stage
 FROM gradle:jdk21-jammy AS BUILD
-ENV MONGODB_URI default
 WORKDIR /usr/app/
 COPY . .
 RUN gradle build
@@ -9,7 +8,6 @@ RUN gradle build
 FROM amazoncorretto:21-alpine-jdk
 ENV JAR_NAME=flightscraper-0.0.1-SNAPSHOT.jar
 ENV APP_HOME=/usr/app
-ENV MONGODB_URI default
 WORKDIR $APP_HOME
 COPY --from=BUILD $APP_HOME .
 EXPOSE 8080

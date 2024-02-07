@@ -11,4 +11,4 @@ ENV APP_HOME=/usr/app
 WORKDIR $APP_HOME
 COPY --from=BUILD $APP_HOME .
 EXPOSE 8080
-ENTRYPOINT exec java -jar $APP_HOME/build/libs/$JAR_NAME
+ENTRYPOINT ["java","-jar","/usr/app/build/libs/flightscraper-0.0.1-SNAPSHOT.jar"]

@@ -29,6 +29,7 @@ public class ScrapeService {
     }
 
     private void processPromotions(List<PromotionDto> promotionDtos) {
+        log.info("Found {} promotions to process.", promotionDtos.size());
         promotionDtos.forEach(this::processSinglePromotion);
     }
 
@@ -48,7 +49,7 @@ public class ScrapeService {
                         jsonConverterService.appendFlightPriceHistory(existingFlight, infoAboutFlightConnection))
                 .orElse(jsonConverterService.createFlightFromJson(infoAboutFlightConnection, packageId, ticketDto,
                         date));
-        log.info("Saving flight to repository: {}", flight);
+        log.debug("Saving flight to repository: {}", flight);
         flightRepository.save(flight);
     }
 

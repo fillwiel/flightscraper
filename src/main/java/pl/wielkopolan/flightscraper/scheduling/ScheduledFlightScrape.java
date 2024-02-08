@@ -19,10 +19,11 @@ public class ScheduledFlightScrape {
     private static final Logger log = LoggerFactory.getLogger(ScheduledFlightScrape.class);
     private final ScrapeService scrapeService;
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 * * * * *")
     public void scrapeFlightsFromHomepage() {
         log.info("Running full scrape at: {}", new Date());
         scrapeService.scrapePackages();
+        log.info("Scraping finished.");
     }
 
     @PostConstruct

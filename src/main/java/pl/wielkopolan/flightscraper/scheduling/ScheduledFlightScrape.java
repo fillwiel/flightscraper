@@ -1,6 +1,5 @@
 package pl.wielkopolan.flightscraper.scheduling;
 
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,16 +18,11 @@ public class ScheduledFlightScrape {
     private static final Logger log = LoggerFactory.getLogger(ScheduledFlightScrape.class);
     private final ScrapeService scrapeService;
 
-    @Scheduled(cron = "0 30 * * * *")
+    @Scheduled(fixedRate=60*60*1000)
     public void scrapeFlightsFromHomepage() {
         log.info("Running full scrape at: {}", new Date());
         scrapeService.scrapePackages();
         log.info("Scraping finished.");
-    }
-
-    @PostConstruct
-    public void onStartup() {
-        scrapeFlightsFromHomepage();
     }
     @Autowired
     public ScheduledFlightScrape(ScrapeService scrapeService) {

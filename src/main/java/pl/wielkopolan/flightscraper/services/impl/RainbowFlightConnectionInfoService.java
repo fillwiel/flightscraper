@@ -12,7 +12,7 @@ public class RainbowFlightConnectionInfoService implements FlightConnectionInfoS
     private String connectionInfoUrl;
 
     @Override
-    public JSONObject getInfoAboutFlightConnection(String packageId) {
+    public JSONObject readFlightInfoFromWeb(String packageId) {
         return JsonReader.readJsonFromUrl(connectionInfoUrl + "?id=" + packageId).orElseThrow();
     }
 }

@@ -12,7 +12,7 @@ import java.util.List;
 public interface JsonConverterService {
     List<PromotionDto> createPromotionDto(JSONArray jsonArray);
 
-    Flight createFlightFromJson(JSONObject infoAboutFlightConnection, String packageId, TicketDto ticketDto, Date date);
+    Flight createFlightFromJson(JSONObject currentFlightInfo, String packageId, TicketDto ticketDto, Date date);
 
-    Flight appendFlightPriceHistory(Flight existingFlight, JSONObject infoAboutFlightConnection);
+    Flight updateFlightPriceHistory(Flight existingFlight, JSONObject infoAboutFlightConnection);
 }

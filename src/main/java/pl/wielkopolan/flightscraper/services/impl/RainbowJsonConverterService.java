@@ -2,6 +2,8 @@ package pl.wielkopolan.flightscraper.services.impl;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import pl.wielkopolan.flightscraper.data.Flight;
 import pl.wielkopolan.flightscraper.data.PriceHistory;
@@ -13,13 +15,12 @@ import pl.wielkopolan.flightscraper.util.jsonconstants.RainbowConstants;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class RainbowJsonConverterService implements JsonConverterService {
+    private static final Logger log = LoggerFactory.getLogger(RainbowJsonConverterService.class);
+
     @Override
     public List<PromotionDto> createPromotionDto(JSONArray jsonArray) {
         List<PromotionDto> promotionDtoList = new ArrayList<>();
@@ -28,18 +29,18 @@ public class RainbowJsonConverterService implements JsonConverterService {
     }
 
     @Override
-    public Flight createFlightFromJson(JSONObject infoAboutFlightConnection, String packageId, TicketDto ticketDto,
+    public Flight createFlightFromJson(JSONObject currentFlightInfo, String packageId, TicketDto ticketDto,
                                        Date date) {
-        return createFlight(infoAboutFlightConnection, packageId, ticketDto, date);
+        return createFlight(currentFlightInfo, packageId, ticketDto, date);
     }
 
     @Override
-    public Flight appendFlightPriceHistory(Flight existingFlight, JSONObject infoAboutFlightConnection) {
-        return updateFlight(existingFlight, infoAboutFlightConnection);
+    public Flight updateFlightPriceHistory(Flight existingFlight, JSONObject currentFlightInfo) {
+        return appendPriceHistoryIfPriceChanged(existingFlight, currentFlightInfo);
     }
 
-    private Flight updateFlight(Flight flight, JSONObject infoAboutFlightConnection) {
-        PriceHistory currentPrice = createPriceHistoryItem(infoAboutFlightConnection);
+    private Flight appendPriceHistoryIfPriceChanged(Flight flight, JSONObject currentFlightInfo) {
+        PriceHistory currentPrice = createPriceHistoryItem(currentFlightInfo);
         if (isPriceChanged(flight, currentPrice)) {
             flight.priceHistory().addLast(currentPrice);
         }
@@ -47,25 +48,30 @@ public class RainbowJsonConverterService implements JsonConverterService {
     }
 
     private static boolean isPriceChanged(Flight flight, PriceHistory currentPrice) {
-        Optional<PriceHistory> unchangedPrice = flight.priceHistory().stream()
-                .filter(priceHistory -> priceHistory.price() == currentPrice.price())
-                .findFirst();
-        return unchangedPrice.isEmpty();
+        Optional<PriceHistory> mostRecentPriceRecorded = flight.priceHistory().stream()
+                .max(Comparator.comparing(PriceHistory::dateOfChange));
+        //TODO remove this log if we're happy with the application. It causes unnecessary reads from objects (but
+        // only when change detected, so no biggy
+        if (mostRecentPriceRecorded.isPresent() && mostRecentPriceRecorded.get().price() != currentPrice.price()) {
+            log.info("Flight {} price has changed. Most recent price recorded: {}, current price: {}",
+                    flight.packageId(), mostRecentPriceRecorded.orElse(null).price(), currentPrice.price());
+        }
+        return mostRecentPriceRecorded.isEmpty() || mostRecentPriceRecorded.get().price() != currentPrice.price();
     }
 
-    private Flight createFlight(JSONObject infoAboutFlightConnection, String packageId, TicketDto ticketDto,
+    private Flight createFlight(JSONObject currentFlightInfo, String packageId, TicketDto ticketDto,
                                 Date date) {
         String airport = ticketDto.arrivalInfo().airport();
         String country = ticketDto.arrivalInfo().country();
         String arrivalCity = ticketDto.arrivalInfo().city();
         String departureCity = ticketDto.departureInfo().city();
-        PriceHistory priceHistoryItem = createPriceHistoryItem(infoAboutFlightConnection);
+        PriceHistory priceHistoryItem = createPriceHistoryItem(currentFlightInfo);
         return new Flight(packageId, airport, country, arrivalCity, departureCity, date, List.of(priceHistoryItem));
     }
 
-    private PriceHistory createPriceHistoryItem(JSONObject infoAboutFlightConnection) {
-        int price = (int) infoAboutFlightConnection.get(RainbowConstants.PRICE.getValue());
-        int returnFlightId = (int) infoAboutFlightConnection.get(RainbowConstants.ID.getValue());
+    private PriceHistory createPriceHistoryItem(JSONObject currentFlightInfo) {
+        int price = (int) currentFlightInfo.get(RainbowConstants.PRICE.getValue());
+        int returnFlightId = (int) currentFlightInfo.get(RainbowConstants.ID.getValue());
         return new PriceHistory(returnFlightId, price, new Date());
     }
 

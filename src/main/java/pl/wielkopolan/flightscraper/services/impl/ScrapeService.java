@@ -42,14 +42,13 @@ public class ScrapeService {
     }
 
     private void processPackage(String packageId, TicketDto ticketDto, Date date) {
-        final JSONObject infoAboutFlightConnection =
-                flightConnectionInfoService.getInfoAboutFlightConnection(packageId);
+        final JSONObject currentFlightInfo = flightConnectionInfoService.readFlightInfoFromWeb(packageId);
         Flight flight = flightRepository.findByPackageId(packageId)
                 .map(existingFlight ->
-                        jsonConverterService.appendFlightPriceHistory(existingFlight, infoAboutFlightConnection))
-                .orElse(jsonConverterService.createFlightFromJson(infoAboutFlightConnection, packageId, ticketDto,
-                        date));
+                        jsonConverterService.updateFlightPriceHistory(existingFlight, currentFlightInfo))
+                .orElse(jsonConverterService.createFlightFromJson(currentFlightInfo, packageId, ticketDto, date));
         log.debug("Saving flight to repository: {}", flight);
+        //TODO Do not save to repository if price has not changed
         flightRepository.save(flight);
     }
 

@@ -29,8 +29,7 @@ public class RainbowJsonConverterService implements JsonConverterService {
     }
 
     @Override
-    public Flight createFlightFromJson(JSONObject currentFlightInfo, String packageId, TicketDto ticketDto,
-                                       Date date) {
+    public Flight createFlightFromJson(JSONObject currentFlightInfo, String packageId, TicketDto ticketDto, Date date) {
         return createFlight(currentFlightInfo, packageId, ticketDto, date);
     }
 
@@ -46,8 +45,13 @@ public class RainbowJsonConverterService implements JsonConverterService {
         }
         return flight;
     }
+    @Override
+    public boolean isPriceChanged(Flight flight, JSONObject currentFlightInfo) {
+        PriceHistory currentPrice = createPriceHistoryItem(currentFlightInfo);
+        return (isPriceChanged(flight, currentPrice));
+    }
 
-    private static boolean isPriceChanged(Flight flight, PriceHistory currentPrice) {
+    private boolean isPriceChanged(Flight flight, PriceHistory currentPrice) {
         Optional<PriceHistory> mostRecentPriceRecorded = flight.priceHistory().stream()
                 .max(Comparator.comparing(PriceHistory::dateOfChange));
         //TODO remove this log if we're happy with the application. It causes unnecessary reads from objects (but
@@ -59,8 +63,7 @@ public class RainbowJsonConverterService implements JsonConverterService {
         return mostRecentPriceRecorded.isEmpty() || mostRecentPriceRecorded.get().price() != currentPrice.price();
     }
 
-    private Flight createFlight(JSONObject currentFlightInfo, String packageId, TicketDto ticketDto,
-                                Date date) {
+    private Flight createFlight(JSONObject currentFlightInfo, String packageId, TicketDto ticketDto, Date date) {
         String airport = ticketDto.arrivalInfo().airport();
         String country = ticketDto.arrivalInfo().country();
         String arrivalCity = ticketDto.arrivalInfo().city();

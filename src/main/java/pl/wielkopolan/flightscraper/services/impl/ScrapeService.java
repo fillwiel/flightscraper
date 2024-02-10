@@ -39,6 +39,7 @@ public class ScrapeService {
         promotionDto.tickets().forEach(ticket -> processTicket(ticket, promotionDto.date()));
     }
 
+    //TODO: rename date to dateOfFlight for clarity - but verify before changing var if this is really the correct date
     private void processTicket(TicketDto ticketDto, Date date) {
         ticketDto.packages().forEach(packageId -> processPackage(packageId, ticketDto, date));
     }
@@ -50,18 +51,32 @@ public class ScrapeService {
         try {
             optionalFlight = flightRepository.findByPackageId(packageId);
         } catch (UncategorizedMongoDbException e) {
-            log.error("Error looking up flight in repository with packageId: {}", packageId,e);
+            log.error("Error looking up flight in repository with packageId: {}", packageId, e);
         }
-        Flight flight = optionalFlight
-                .map(existingFlight ->
-                        jsonConverterService.updateFlightPriceHistory(existingFlight, currentFlightInfo))
-                .orElse(jsonConverterService.createFlightFromJson(currentFlightInfo, packageId, ticketDto, date));
-        log.debug("Saving flight to repository: {}", flight);
-        //TODO Do not save to repository if price has not changed
+        if (optionalFlight.isPresent()) {
+            updateFlightPriceHistory(optionalFlight.get(), currentFlightInfo);
+        } else {
+            saveNewFlight(currentFlightInfo, packageId, ticketDto, date);
+        }
+    }
+
+    private void updateFlightPriceHistory(Flight existingFlight, JSONObject flightInfo) {
+        //TODO: rewrite either this method or the converterService not to create so many PriceHistory objects
+        if (jsonConverterService.isPriceChanged(existingFlight, flightInfo)) {
+            try {
+                flightRepository.save(jsonConverterService.updateFlightPriceHistory(existingFlight, flightInfo));
+            } catch (UncategorizedMongoDbException e) {
+                log.error("Error updating existingFlight : {}", existingFlight.packageId(), e);
+            }
+        }
+    }
+
+    private void saveNewFlight(JSONObject currentFlightInfo, String packageId, TicketDto ticketDto, Date date) {
         try {
-            flightRepository.save(flight);
+            flightRepository.save(jsonConverterService.createFlightFromJson(currentFlightInfo, packageId, ticketDto,
+                    date));
         } catch (UncategorizedMongoDbException e) {
-            log.error("Error saving flight to repository: {}", flight,e);
+            log.error("Error saving flight : {}", packageId, e);
         }
     }
 

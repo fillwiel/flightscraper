@@ -15,4 +15,6 @@ public interface JsonConverterService {
     Flight createFlightFromJson(JSONObject currentFlightInfo, String packageId, TicketDto ticketDto, Date date);
 
     Flight updateFlightPriceHistory(Flight existingFlight, JSONObject infoAboutFlightConnection);
+
+    boolean isPriceChanged(Flight flight, JSONObject currentFlightInfo);
 }

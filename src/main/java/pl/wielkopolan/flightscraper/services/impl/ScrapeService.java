@@ -4,6 +4,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.UncategorizedMongoDbException;
 import org.springframework.stereotype.Service;
 import pl.wielkopolan.flightscraper.data.Flight;
 import pl.wielkopolan.flightscraper.data.rainbow.PromotionDto;
@@ -15,6 +16,7 @@ import pl.wielkopolan.flightscraper.services.PromotionListService;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ScrapeService {
@@ -41,15 +43,26 @@ public class ScrapeService {
         ticketDto.packages().forEach(packageId -> processPackage(packageId, ticketDto, date));
     }
 
+    //TODO: rename this method to inform about saving to repository
     private void processPackage(String packageId, TicketDto ticketDto, Date date) {
         final JSONObject currentFlightInfo = flightConnectionInfoService.readFlightInfoFromWeb(packageId);
-        Flight flight = flightRepository.findByPackageId(packageId)
+        Optional<Flight> optionalFlight = Optional.empty();
+        try {
+            optionalFlight = flightRepository.findByPackageId(packageId);
+        } catch (UncategorizedMongoDbException e) {
+            log.error("Error looking up flight in repository with packageId: {}", packageId,e);
+        }
+        Flight flight = optionalFlight
                 .map(existingFlight ->
                         jsonConverterService.updateFlightPriceHistory(existingFlight, currentFlightInfo))
                 .orElse(jsonConverterService.createFlightFromJson(currentFlightInfo, packageId, ticketDto, date));
         log.debug("Saving flight to repository: {}", flight);
         //TODO Do not save to repository if price has not changed
-        flightRepository.save(flight);
+        try {
+            flightRepository.save(flight);
+        } catch (UncategorizedMongoDbException e) {
+            log.error("Error saving flight to repository: {}", flight,e);
+        }
     }
 
     @Autowired

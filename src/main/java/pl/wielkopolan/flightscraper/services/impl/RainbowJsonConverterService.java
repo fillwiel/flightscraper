@@ -35,27 +35,23 @@ public class RainbowJsonConverterService implements JsonConverterService {
 
     @Override
     public Flight updateFlightPriceHistory(Flight existingFlight, JSONObject currentFlightInfo) {
-        return appendPriceHistoryIfPriceChanged(existingFlight, currentFlightInfo);
+        return appendPriceHistory(existingFlight, currentFlightInfo);
     }
 
-    private Flight appendPriceHistoryIfPriceChanged(Flight flight, JSONObject currentFlightInfo) {
+    private Flight appendPriceHistory(Flight flight, JSONObject currentFlightInfo) {
         PriceHistory currentPrice = createPriceHistoryItem(currentFlightInfo);
-        if (isPriceChanged(flight, currentPrice)) {
-            flight.priceHistory().addLast(currentPrice);
-        }
+        flight.priceHistory().addLast(currentPrice);
         return flight;
     }
     @Override
     public boolean isPriceChanged(Flight flight, JSONObject currentFlightInfo) {
         PriceHistory currentPrice = createPriceHistoryItem(currentFlightInfo);
-        return (isPriceChanged(flight, currentPrice));
+        return isPriceChanged(flight, currentPrice);
     }
 
     private boolean isPriceChanged(Flight flight, PriceHistory currentPrice) {
         Optional<PriceHistory> mostRecentPriceRecorded = flight.priceHistory().stream()
                 .max(Comparator.comparing(PriceHistory::dateOfChange));
-        //TODO remove this log if we're happy with the application. It causes unnecessary reads from objects (but
-        // only when change detected, so no biggy
         if (mostRecentPriceRecorded.isPresent() && mostRecentPriceRecorded.get().price() != currentPrice.price()) {
             log.info("Flight {} price has changed. Most recent price recorded: {}, current price: {}",
                     flight.packageId(), mostRecentPriceRecorded.orElse(null).price(), currentPrice.price());

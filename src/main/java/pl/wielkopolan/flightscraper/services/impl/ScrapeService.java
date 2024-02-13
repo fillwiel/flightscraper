@@ -41,14 +41,20 @@ public class ScrapeService {
 
     private void processNewTickets(final List<PromotionDto> promotionDtos, final List<TicketDto> newTickets,
                                    final List<Flight> recordedFlights) {
+        if(newTickets.isEmpty()) {
+            log.info("No new tickets found.");
+            return;
+        }
         Map<TicketDto, Date> ticketDateMap = createTicketDateOfFlightMap(promotionDtos, newTickets);
         List<Flight> newFlights = flightCreatorService.createNewFlights(ticketDateMap);
         List<Flight> flightsCheckedForNotMatchingExistingFlights = newFlights.stream().filter(flight ->
                 !recordedFlights.stream().map(Flight::packageId).toList().contains(flight.packageId())).toList();
+        log.info("Saving {} flights.", flightsCheckedForNotMatchingExistingFlights.size());
         repositoryService.saveFlights(flightsCheckedForNotMatchingExistingFlights);
     }
     private void processExistingFlights(List<Flight> flights) {
         List<Flight> flightsToBeUpdated = flightCreatorService.createUpdatedFlightsIfPriceChanged(flights);
+        log.info("Updating {} flights.", flightsToBeUpdated.size());
         repositoryService.saveFlights(flightsToBeUpdated);
     }
 

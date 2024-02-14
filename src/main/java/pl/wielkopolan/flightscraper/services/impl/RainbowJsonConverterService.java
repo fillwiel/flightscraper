@@ -53,8 +53,8 @@ public class RainbowJsonConverterService implements JsonConverterService {
         Optional<PriceHistory> mostRecentPriceRecorded = flight.priceHistory().stream()
                 .max(Comparator.comparing(PriceHistory::dateOfChange));
         if (mostRecentPriceRecorded.isPresent() && mostRecentPriceRecorded.get().price() != currentPrice.price()) {
-            log.info("Flight {} price has changed. Most recent price recorded: {}, current price: {}",
-                    flight.packageId(), mostRecentPriceRecorded.orElse(null).price(), currentPrice.price());
+            log.info("Flight {} to {} price changed. Most recent price recorded: {}, current price: {}",
+                    flight.packageId(), flight.arrivalCity(), mostRecentPriceRecorded.get().price(), currentPrice.price());
         }
         return mostRecentPriceRecorded.isEmpty() || mostRecentPriceRecorded.get().price() != currentPrice.price();
     }

@@ -18,7 +18,7 @@ public class ScheduledFlightScrape {
     private static final Logger log = LoggerFactory.getLogger(ScheduledFlightScrape.class);
     private final ScrapeService scrapeService;
 
-    @Scheduled(fixedRate=60*30*1000)
+    @Scheduled(fixedRate=60*14*1000)
     public void scrapeFlightsFromHomepage() {
         log.info("Running full scrape at: {}", new Date());
         scrapeService.scrapePackages();

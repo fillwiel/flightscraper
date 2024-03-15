@@ -14,14 +14,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-public class JsonReader {
-
+public final class JsonReader {
     private static final Logger log = LoggerFactory.getLogger(JsonReader.class);
-    public static Optional<JSONObject> readJsonFromUrl(String url) throws JSONException {
+    public static Optional<JSONObject> readJsonFromUrl(String url) {
+        String jsonText = null;
         try (InputStream is = URI.create(url).toURL().openStream()) {
             BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-            String jsonText = readAll(rd);
+            jsonText = readAll(rd);
             return Optional.of(new JSONObject(jsonText));
+        } catch (JSONException e) {
+            if(jsonText != null) {
+                log.error("Problem with reading json from: {}", jsonText, e);
+            } else {
+                log.error("readAll() can't transform json.",e);
+            }
         } catch (MalformedURLException e) {
             log.error("Malformed URL: {}", url);
         } catch (IOException e) {
@@ -42,7 +48,7 @@ public class JsonReader {
 
     private static String readAll(Reader rd) throws IOException {
         StringBuilder sb = new StringBuilder();
-        int cp;/*w w  w .j  ava2 s .co  m*/
+        int cp;
         while ((cp = rd.read()) != -1) {
             sb.append((char) cp);
         }

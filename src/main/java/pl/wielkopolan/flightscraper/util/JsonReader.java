@@ -24,7 +24,7 @@ public final class JsonReader {
             return Optional.of(new JSONObject(jsonText));
         } catch (JSONException e) {
             if(jsonText != null) {
-                log.error("Problem with reading json from: {}", jsonText, e);
+                log.error("Problem with reading json from: {} at {}", jsonText, url, e);
             } else {
                 log.error("readAll() can't transform json.",e);
             }

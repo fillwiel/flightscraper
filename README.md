@@ -1,1 +1,3 @@
-Application studying flight prices changes.
+Application studying flight price changes.
+
+Visualized at http://rainbowchart.atwebpages.com/

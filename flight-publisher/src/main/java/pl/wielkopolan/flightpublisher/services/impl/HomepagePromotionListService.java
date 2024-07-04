@@ -17,11 +17,14 @@ import java.util.Calendar;
 public class HomepagePromotionListService implements PromotionListService {
     private static final String DATE_MIN_PARAM = "&dataMin=";
     private static final String DATE_MAX_PARAM = "&dataMax=";
+    private final String promotionUrl;
+    private final int monthsToAdd;
 
-    @Value("${rainbow.search.api.url.promotions}")
-    private String promotionUrl;
-    @Value("${scraper.search.months.forward}")
-    private int monthsToAdd;
+    public HomepagePromotionListService(@Value("${rainbow.search.api.url.promotions}") String promotionUrl,
+                                        @Value("${scraper.search.months.forward}") int monthsToAdd) {
+        this.promotionUrl = promotionUrl;
+        this.monthsToAdd = monthsToAdd;
+    }
 
     @Override
     public JSONArray getPromotionList() throws JSONException {

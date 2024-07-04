@@ -1,11 +1,11 @@
-package pl.wielkopolan.flightpublisher.services.impl;
+package pl.wielkopolan.flightpersistence.services.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import pl.wielkopolan.flightpublisher.services.FlightConnectionInfoService;
-import pl.wielkopolan.flightpublisher.util.JsonReader;
+import pl.wielkopolan.flightpersistence.services.FlightConnectionInfoService;
+import pl.wielkopolan.flightpersistence.util.JsonReader;
 
 @Slf4j
 @Service
@@ -28,4 +28,3 @@ public class RainbowFlightConnectionInfoService implements FlightConnectionInfoS
         }
     }
 }
-

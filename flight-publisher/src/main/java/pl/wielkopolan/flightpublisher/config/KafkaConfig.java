@@ -9,7 +9,6 @@ import org.springframework.kafka.config.TopicBuilder;
 @Configuration
 @Profile("dev")
 public class KafkaConfig {
-
     @Bean
     public NewTopic flightsPublishedTopic(final KafkaConfigProps kafkaConfigProps) {
         return TopicBuilder.name(kafkaConfigProps.getTopic())

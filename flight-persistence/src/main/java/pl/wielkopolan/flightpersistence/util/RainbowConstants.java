@@ -1,7 +1,10 @@
-package pl.wielkopolan.flightpublisher.util.jsonconstants;
+package pl.wielkopolan.flightpersistence.util;
 
 import lombok.Getter;
 
+/**
+ * Constants used for identifying JSON keys.
+ */
 @Getter
 public enum RainbowConstants {
     ID("id"),

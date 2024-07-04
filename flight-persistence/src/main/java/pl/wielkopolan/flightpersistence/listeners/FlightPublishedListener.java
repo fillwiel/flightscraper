@@ -1,35 +1,23 @@
 package pl.wielkopolan.flightpersistence.listeners;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import pl.wielkopolan.flightpersistence.data.Flight;
-import pl.wielkopolan.flightpersistence.services.RepositoryService;
-import pl.wielkopolan.flightpersistence.util.JsonToFlightMapper;
+import pl.wielkopolan.flightpersistence.data.FlightDto;
+import pl.wielkopolan.flightpersistence.services.FlightProcessingService;
 
 @Profile("dev")
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class FlightPublishedListener {
-    private final RepositoryService repositoryService;
+    private final FlightProcessingService flightProcessingService;
 
-    public FlightPublishedListener(
-            final RepositoryService repositoryService) {
-        this.repositoryService = repositoryService;
-    }
-
-    @KafkaListener(topics = "flights.published")
-    public String listens(final String in) {
-        log.debug("Received Flight: {}", in);
-        try {
-            final Flight flightFromTopic = JsonToFlightMapper.mapJsonToFlight(in);
-            Flight savedFlight = repositoryService.save(flightFromTopic);
-            log.debug("Flight persisted: {}", savedFlight);
-        } catch (final JsonProcessingException ex) {
-            log.error("Cannot map message to Flight: {}", in);
-        }
-        return in;
+    @KafkaListener(topics = "flights.published", containerFactory = "flightKafkaListenerContainerFactory")
+    public void flightDtoListener(final FlightDto flight) {
+        log.debug("Received Flight: {}", flight.packageId());
+        flightProcessingService.processFlight(flight);
     }
 }

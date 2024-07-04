@@ -35,5 +35,6 @@ public final class UrlReader {
         return Optional.empty();
     }
     private UrlReader() {
+        // Private constructor - util class
     }
 }

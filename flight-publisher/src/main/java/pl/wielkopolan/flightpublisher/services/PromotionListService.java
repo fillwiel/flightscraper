@@ -4,5 +4,4 @@ import org.json.JSONArray;
 
 public interface PromotionListService {
     JSONArray getPromotionList ();
-
 }

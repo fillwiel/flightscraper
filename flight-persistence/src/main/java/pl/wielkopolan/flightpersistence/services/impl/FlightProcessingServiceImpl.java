@@ -25,7 +25,7 @@ public class FlightProcessingServiceImpl implements FlightProcessingService {
      * @param flightDto Flight from Kafka topic
      */
     @Override
-    public void processFlight(FlightDto flightDto) {
+    public synchronized void processFlight(final FlightDto flightDto) {
         repositoryService.findFlightByPackageId(flightDto.packageId())
                 .ifPresentOrElse(
                         existingFlight -> updateExistingFlight(existingFlight, flightDto),

@@ -6,7 +6,6 @@ import lombok.Data;
 
 @Data
 public class SubscriptionDto {
-    private String id;
     private String userId;
     @NotBlank(message = "Device token is mandatory to allow push notifications")
     private String deviceToken;

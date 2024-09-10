@@ -16,10 +16,8 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/v1/api")
-@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
 @RequiredArgsConstructor
 public class SubscriptionController {
-
     private final RepositoryService repositoryService;
 
     @GetMapping("/subscriptions")
@@ -50,8 +48,7 @@ public class SubscriptionController {
         }
     }
 
-    @PostMapping(value = "/subscriptions",
-            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/subscriptions", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> createSubscription(@RequestBody @Valid SubscriptionDto subscriptionDto) {
         log.debug("Received at create subscription {}", subscriptionDto);
         try {
@@ -60,8 +57,7 @@ public class SubscriptionController {
             return ResponseEntity.status(HttpStatus.CREATED).body("Subscription created");
         } catch (Exception e) {
             log.error("Error creating subscription", e);
-            return
-                    ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating subscription");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating subscription");
         }
     }
 }

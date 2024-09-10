@@ -63,3 +63,23 @@ services:
       SPRING_PROFILES_ACTIVE: 'dev'
       FLIGHTSCRAPER_KAFKA_TOPIC: 'flights.published'
       SPRING_KAFKA_BOOTSTRAP_SERVERS: 'broker:29092'
+
+  notification:
+    build: ./notification
+    container_name: notification
+    depends_on:
+      - broker
+    ports:
+      - "8282:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: 'dev'
+      FLIGHTSCRAPER_KAFKA_TOPIC: 'flights.published'
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: 'broker:29092'
+
+  subscriptionpersistence:
+    build: ./subscription-persistence
+    container_name: subscriptionpersistence
+    ports:
+      - "8383:8443"
+    environment:
+      SPRING_PROFILES_ACTIVE: 'dev'

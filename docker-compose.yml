@@ -1,4 +1,3 @@
----
 version: '3'
 services:
   akhq:
@@ -17,8 +16,9 @@ services:
       - "8080:8080"
     links:
       - broker
+
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.3.0
+    image: confluentinc/cp-zookeeper:7.4.6
     container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -27,7 +27,7 @@ services:
       - "2181:2181"
 
   broker:
-    image: confluentinc/cp-kafka:7.3.0
+    image: confluentinc/cp-kafka:7.4.6
     container_name: broker
     ports:
       - "9092:9092"
@@ -83,3 +83,27 @@ services:
       - "8383:8443"
     environment:
       SPRING_PROFILES_ACTIVE: 'dev'
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - flightpersistence
+      - flightpublisher
+      - notification
+      - subscriptionpersistence
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8082:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    privileged: true

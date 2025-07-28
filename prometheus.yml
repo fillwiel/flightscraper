@@ -2,15 +2,15 @@ global:
   scrape_interval: 5s
 
 scrape_configs:
-  - job_name: 'flightpersistence'
-    metrics_path: '/actuator/prometheus'
-    static_configs:
-      - targets: ['flightpersistence:8080']
-
   - job_name: 'flightpublisher'
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['flightpublisher:8080']
+
+  - job_name: 'flightpersistence'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['flightpersistence:8080']
 
   - job_name: 'notification'
     metrics_path: '/actuator/prometheus'
@@ -20,8 +20,15 @@ scrape_configs:
   - job_name: 'subscriptionpersistence'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['subscriptionpersistence:8443']
+      - targets: ['subscriptionpersistence:8080']
 
   - job_name: 'cadvisor'
     static_configs:
       - targets: ['cadvisor:8080']
+
+#  - job_name: docker
+#    # metrics_path defaults to '/metrics'
+#    # scheme defaults to 'http'.
+#
+#    static_configs:
+#      - targets: [ "host.docker.internal:9323" ]

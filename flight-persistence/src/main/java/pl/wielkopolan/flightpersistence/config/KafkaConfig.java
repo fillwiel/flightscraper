@@ -11,7 +11,8 @@ public class KafkaConfig {
     @Bean
     public NewTopic flightsPublishedTopic(final KafkaConfigProps kafkaConfigProps) {
         return TopicBuilder.name(kafkaConfigProps.getTopic())
-        .partitions(10)
-        .replicas(1)
-        .build();    }
+                .partitions(10)
+                .replicas(1)
+                .build();
+    }
 }
